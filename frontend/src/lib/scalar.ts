@@ -63,8 +63,20 @@ export const defaultProxyUrl = "/api/v1/proxy";
  * empty string to call target APIs directly from the browser.
  */
 export function scalarConfig(slug: string, proxyUrl: string = defaultProxyUrl): Partial<ApiReferenceConfiguration> {
+  return { ...baseConfig(proxyUrl), url: specUrl(slug) };
+}
+
+/**
+ * Renders an unsaved document from the admin editor. Scalar parses the YAML or
+ * JSON string itself, so the preview needs no server round trip. The classic
+ * single-column layout fits the half-width preview pane.
+ */
+export function scalarPreviewConfig(content: string, proxyUrl: string = defaultProxyUrl): Partial<ApiReferenceConfiguration> {
+  return { ...baseConfig(proxyUrl), content, layout: "classic", showSidebar: false };
+}
+
+function baseConfig(proxyUrl: string): Partial<ApiReferenceConfiguration> {
   return {
-    url: specUrl(slug),
     proxyUrl: proxyUrl || undefined,
     layout: "modern",
     showSidebar: true,

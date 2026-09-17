@@ -97,6 +97,7 @@ func TestAdminRoutesRequireToken(t *testing.T) {
 	for _, tc := range []struct{ method, path string }{
 		{http.MethodPost, "/api/v1/admin/collections"},
 		{http.MethodPut, "/api/v1/admin/collections/petstore"},
+		{http.MethodGet, "/api/v1/admin/collections/petstore/source"},
 		{http.MethodDelete, "/api/v1/admin/collections/petstore"},
 		{http.MethodGet, "/api/v1/auth/me"},
 	} {
@@ -128,6 +129,27 @@ func TestAdminUploadLifecycle(t *testing.T) {
 	}
 	if len(ops.byCol["id-petstore"]) == 0 {
 		t.Error("operations not indexed after upload")
+	}
+
+	// The editor can fetch the original text back.
+	rec = send(r, http.MethodGet, "/api/v1/admin/collections/petstore/source", token, "", nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("source: %d %s", rec.Code, rec.Body)
+	}
+	var src struct {
+		Filename  string `json:"filename"`
+		Type      string `json:"type"`
+		Canonical bool   `json:"canonical"`
+		Content   string `json:"content"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &src); err != nil {
+		t.Fatal(err)
+	}
+	if src.Filename != "petstore.yaml" || src.Type != "openapi3" || src.Canonical || src.Content != string(petstoreYAML(t)) {
+		t.Errorf("source = filename %q type %q canonical %v, content matches: %v", src.Filename, src.Type, src.Canonical, src.Content == string(petstoreYAML(t)))
+	}
+	if rec := send(r, http.MethodGet, "/api/v1/admin/collections/missing/source", token, "", nil); rec.Code != http.StatusNotFound {
+		t.Errorf("source unknown: %d", rec.Code)
 	}
 
 	// Public read API sees the upload.

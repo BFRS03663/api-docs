@@ -14,6 +14,7 @@ import (
 type fakeCols struct {
 	items map[string]*domain.Collection
 	specs map[string][]byte
+	raws  map[string][]byte
 	err   error
 }
 
@@ -45,6 +46,13 @@ func (f *fakeCols) GetSpec(_ context.Context, slug string) ([]byte, error) {
 	return nil, domain.ErrNotFound
 }
 
+func (f *fakeCols) GetRawUpload(_ context.Context, slug string) ([]byte, error) {
+	if raw, ok := f.raws[slug]; ok {
+		return raw, nil
+	}
+	return nil, domain.ErrNotFound
+}
+
 func (f *fakeCols) Upsert(_ context.Context, c *domain.Collection) (bool, error) {
 	if f.err != nil {
 		return false, f.err
@@ -54,6 +62,9 @@ func (f *fakeCols) Upsert(_ context.Context, c *domain.Collection) (bool, error)
 	}
 	if f.specs == nil {
 		f.specs = map[string][]byte{}
+	}
+	if f.raws == nil {
+		f.raws = map[string][]byte{}
 	}
 	existing, ok := f.items[c.Slug]
 	if ok {
@@ -65,6 +76,7 @@ func (f *fakeCols) Upsert(_ context.Context, c *domain.Collection) (bool, error)
 	meta.Spec, meta.RawUpload = nil, nil
 	f.items[c.Slug] = &meta
 	f.specs[c.Slug] = c.Spec
+	f.raws[c.Slug] = c.RawUpload
 	return !ok, nil
 }
 
@@ -75,6 +87,7 @@ func (f *fakeCols) Delete(_ context.Context, slug string) (string, error) {
 	}
 	delete(f.items, slug)
 	delete(f.specs, slug)
+	delete(f.raws, slug)
 	return c.ID, nil
 }
 

@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ApiError, type Collection } from "./client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ApiError, type Collection, type SourceType } from "./client";
 import { authFetch, setSession } from "@/lib/auth";
 
 async function parseError(res: Response): Promise<ApiError> {
@@ -56,6 +56,32 @@ export async function importCollection(source: ImportSource, slug: string, name:
   return (await res.json()) as ImportResult;
 }
 
+/** The text the editor loads for an existing collection (see GET /admin/collections/:slug/source). */
+export interface CollectionSource {
+  slug: string;
+  filename: string;
+  type: SourceType;
+  /** true when `content` is the canonical OpenAPI JSON rather than the original upload (Postman imports). */
+  canonical: boolean;
+  content: string;
+}
+
+export async function fetchSource(slug: string): Promise<CollectionSource> {
+  const res = await authFetch(`/api/v1/admin/collections/${encodeURIComponent(slug)}/source`);
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as CollectionSource;
+}
+
+export function useCollectionSource(slug: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: ["collection-source", slug],
+    queryFn: () => fetchSource(slug ?? ""),
+    enabled: Boolean(slug) && enabled,
+    retry: false,
+    staleTime: Infinity,
+  });
+}
+
 export async function deleteCollection(slug: string): Promise<void> {
   const res = await authFetch(`/api/v1/admin/collections/${encodeURIComponent(slug)}`, { method: "DELETE" });
   if (!res.ok && res.status !== 404) throw await parseError(res);
@@ -74,6 +100,6 @@ export function useImportCollection() {
   return useMutation({
     mutationFn: (args: { source: ImportSource; slug: string; name: string; existing: boolean }) =>
       importCollection(args.source, args.slug, args.name, args.existing),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["collections"] }),
+    onSuccess: () => Promise.all([qc.invalidateQueries({ queryKey: ["collections"] }), qc.invalidateQueries({ queryKey: ["collection-source"] })]),
   });
 }

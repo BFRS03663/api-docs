@@ -11,6 +11,7 @@ import AdminImport from "@/pages/admin/AdminImport";
 
 // Scalar is the largest dependency; only load it when a docs page is opened.
 const Docs = lazy(() => import("@/pages/Docs"));
+const AdminEditor = lazy(() => import("@/pages/admin/AdminEditor"));
 
 function DocsFallback() {
   return (
@@ -38,6 +39,14 @@ export default function App() {
         <Route index element={<AdminCollections />} />
         <Route path="import" element={<AdminImport />} />
         <Route path="import/:slug" element={<AdminImport />} />
+        <Route
+          path="editor/:slug?"
+          element={
+            <Suspense fallback={<p className="text-sm text-gray-500">Loading editor…</p>}>
+              <AdminEditor />
+            </Suspense>
+          }
+        />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

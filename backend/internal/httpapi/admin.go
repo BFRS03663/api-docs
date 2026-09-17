@@ -24,6 +24,7 @@ const maxUploadBytes = 10 << 20
 type CollectionStore interface {
 	CollectionReader
 	Upsert(ctx context.Context, c *domain.Collection) (bool, error)
+	GetRawUpload(ctx context.Context, slug string) ([]byte, error)
 	Delete(ctx context.Context, slug string) (string, error)
 }
 
@@ -56,6 +57,7 @@ func (h *adminHandlers) register(public *gin.RouterGroup) {
 
 	admin := public.Group("/admin", h.auth.Middleware())
 	admin.POST("/collections", h.create)
+	admin.GET("/collections/:slug/source", h.source)
 	admin.PUT("/collections/:slug", h.reimport)
 	admin.DELETE("/collections/:slug", h.remove)
 }
@@ -141,6 +143,41 @@ func (h *adminHandlers) remove(c *gin.Context) {
 	}
 	h.log.Info("collection deleted", "slug", slug, "admin", c.GetString(auth.ContextKey))
 	c.Status(http.StatusNoContent)
+}
+
+// source returns the text an admin can edit for a collection: the original
+// upload for OpenAPI sources, or the canonical OpenAPI JSON for Postman
+// sources (Postman JSON cannot be previewed or edited as OpenAPI).
+func (h *adminHandlers) source(c *gin.Context) {
+	slug := c.Param("slug")
+	if !domain.ValidSlug(slug) {
+		notFound(c)
+		return
+	}
+	ctx := c.Request.Context()
+	col, err := h.cols.GetBySlug(ctx, slug)
+	if err != nil {
+		h.fail(c, err)
+		return
+	}
+	canonical := col.Source.Type == domain.SourcePostman
+	var data []byte
+	if canonical {
+		data, err = h.cols.GetSpec(ctx, slug)
+	} else {
+		data, err = h.cols.GetRawUpload(ctx, slug)
+	}
+	if err != nil {
+		h.fail(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"slug":      col.Slug,
+		"filename":  col.Source.Filename,
+		"type":      col.Source.Type,
+		"canonical": canonical,
+		"content":   string(data),
+	})
 }
 
 // readImport accepts either multipart/form-data (file, slug, name) or JSON

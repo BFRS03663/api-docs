@@ -62,7 +62,7 @@ The docs page has an "Export for LLMs" menu with the same links plus "Copy as Ma
 
 ## Admin
 
-Open `/admin` and sign in with `ADMIN_USERNAME` and the password behind `ADMIN_PASSWORD_HASH`. From there you can import a collection by uploading an OpenAPI or Postman file or by pasting a URL (Postman published-docs pages are detected automatically), re-import an existing one, or delete it. Sessions are JWTs signed with `JWT_SECRET` and last 12 hours; login is limited to 5 attempts per minute per IP.
+Open `/admin` and sign in with `ADMIN_USERNAME` and the password behind `ADMIN_PASSWORD_HASH`. From there you can import a collection by uploading an OpenAPI or Postman file or by pasting a URL (Postman published-docs pages are detected automatically), re-import an existing one, or delete it. The **Write spec** tab is a Swagger-Editor-style page: the OpenAPI document (YAML or JSON) on the left, the rendered reference on the right, re-rendered as you type; **Publish** creates the collection or replaces an existing one. **Edit** on the collections table opens a stored document in the same editor (Postman imports open as their converted OpenAPI document). Sessions are JWTs signed with `JWT_SECRET` and last 12 hours; login is limited to 5 attempts per minute per IP.
 
 The same operations are available over HTTP with a bearer token:
 
@@ -70,6 +70,7 @@ The same operations are available over HTTP with a bearer token:
 POST   /api/v1/auth/login                {"username","password"} -> {"token","expiresAt"}
 POST   /api/v1/admin/collections         multipart (file, slug, name) or JSON {"url","slug","name"}
 PUT    /api/v1/admin/collections/:slug   same body, re-imports
+GET    /api/v1/admin/collections/:slug/source   {"slug","filename","type","canonical","content"} — the editable text
 DELETE /api/v1/admin/collections/:slug
 ```
 

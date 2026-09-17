@@ -28,7 +28,11 @@ export default function AdminCollections() {
       )}
       {data && data.length === 0 && (
         <p className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-500">
-          No collections yet. <Link to="/admin/import" className="underline">Import one</Link>.
+          No collections yet. <Link to="/admin/import" className="underline">Import one</Link> or{" "}
+          <Link to="/admin/editor" className="underline">
+            write a spec
+          </Link>
+          .
         </p>
       )}
       {data && data.length > 0 && (
@@ -60,6 +64,9 @@ export default function AdminCollections() {
                   <td className="px-4 py-3">{c.operationCount}</td>
                   <td className="px-4 py-3 text-gray-600">{new Date(c.source.importedAt).toLocaleString()}</td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <Link to={`/admin/editor/${c.slug}`} className="mr-3 text-gray-700 hover:underline">
+                      Edit
+                    </Link>
                     <Link to={`/admin/import/${c.slug}`} className="mr-3 text-gray-700 hover:underline">
                       Re-import
                     </Link>

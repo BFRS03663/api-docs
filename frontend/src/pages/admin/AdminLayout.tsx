@@ -18,15 +18,20 @@ export default function AdminLayout() {
     void fetch("/api/v1/auth/logout", { method: "POST" }).catch(() => undefined);
     navigate("/admin/login", { replace: true });
   }
+  // The editor owns the viewport width like the docs page does.
+  const fullBleed = location.pathname.startsWith("/admin/editor");
   return (
-    <Shell>
-      <div className="mb-6 flex flex-wrap items-center gap-2">
+    <Shell fullBleed={fullBleed}>
+      <div className={`flex flex-wrap items-center gap-2 ${fullBleed ? "mb-2 px-4 pt-4" : "mb-6"}`}>
         <h1 className="mr-4 text-2xl font-semibold">Admin</h1>
         <NavLink to="/admin" end className={tab}>
           Collections
         </NavLink>
         <NavLink to="/admin/import" className={tab}>
           Import
+        </NavLink>
+        <NavLink to="/admin/editor" className={tab}>
+          Write spec
         </NavLink>
         <button onClick={signOut} className="ml-auto text-sm text-gray-600 hover:underline" style={{ color: site.accent }}>
           Sign out
