@@ -1,0 +1,1 @@
+{"event_id":"2893c29f14dc863c","ts":"2026-09-17T07:25:53Z","kind":"escalation","from_tier":0,"to_tier":2,"trigger":"path_pattern","reason":"auth/identity","phase":"implement"}

@@ -1,0 +1,138 @@
+{
+  "info": {
+    "_postman_id": "3f1c2a9e-8d2b-4c6f-9a1e-0b2c3d4e5f60",
+    "name": "Acme Users API",
+    "description": "Sample collection used by the importer tests. Covers folders, variables, path params, query params, bodies, saved responses and auth.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://api.example.com/v1" },
+    { "key": "token", "value": "secret" }
+  ],
+  "item": [
+    {
+      "name": "Users",
+      "description": "Manage user accounts.",
+      "item": [
+        {
+          "name": "List users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/users?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                { "key": "page", "value": "1", "description": "Page number" },
+                { "key": "limit", "value": "20", "description": "Page size" },
+                { "key": "debug", "value": "1", "disabled": true }
+              ]
+            },
+            "description": "Returns a paginated list of users."
+          },
+          "response": [
+            {
+              "name": "OK",
+              "code": 200,
+              "status": "OK",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"items\":[{\"id\":1,\"name\":\"Ada\"}],\"total\":1}"
+            }
+          ]
+        },
+        {
+          "name": "Get user",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"],
+              "variable": [{ "key": "id", "value": "42", "description": "User identifier" }]
+            }
+          },
+          "response": [
+            {
+              "name": "Found",
+              "code": 200,
+              "status": "OK",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"id\":42,\"name\":\"Ada\"}"
+            },
+            {
+              "name": "Missing",
+              "code": 404,
+              "status": "Not Found",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"error\":\"not found\"}"
+            }
+          ]
+        },
+        {
+          "name": "Create user",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Ada\",\"email\":\"ada@example.com\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] },
+            "description": { "content": "Creates a user.", "type": "text/markdown" }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin",
+          "item": [
+            {
+              "name": "Deactivate user",
+              "request": {
+                "method": "DELETE",
+                "url": { "raw": "{{baseUrl}}/users/{{userId}}/active", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "active"] }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Upload avatar",
+      "request": {
+        "method": "PUT",
+        "auth": { "type": "noauth" },
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "file", "type": "file", "src": "avatar.png" },
+            { "key": "caption", "value": "me", "type": "text" }
+          ]
+        },
+        "url": "{{baseUrl}}/users/:id/avatar"
+      },
+      "response": []
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "username", "value": "ada" },
+            { "key": "password", "value": "pw" }
+          ]
+        },
+        "url": "https://auth.example.com/login"
+      },
+      "response": []
+    }
+  ]
+}

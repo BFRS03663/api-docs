@@ -10,7 +10,8 @@
 backend/tmp/
 backend/bin/
 backend/coverage.out
-backend/internal/httpapi/dist/
+backend/internal/ui/dist/*
+!backend/internal/ui/dist/.gitkeep
 
 # Node
 frontend/node_modules/

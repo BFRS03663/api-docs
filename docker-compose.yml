@@ -1,0 +1,70 @@
+services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    env_file: .env
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    volumes:
+      - ./backend:/app
+      - go-mod-cache:/go/pkg/mod
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  frontend:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    environment:
+      VITE_BACKEND_URL: http://backend:8080
+      VITE_SITE_NAME: ${VITE_SITE_NAME:-API Docs}
+      VITE_SITE_LOGO: ${VITE_SITE_LOGO:-}
+      VITE_ACCENT: ${VITE_ACCENT:-#EF5B25}
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    depends_on:
+      - backend
+
+  # Production-style single container: Go binary with the UI embedded.
+  # Start with: docker compose --profile prod up -d --build app
+  app:
+    profiles: ["prod"]
+    build:
+      context: .
+      args:
+        VITE_SITE_NAME: ${VITE_SITE_NAME:-API Docs}
+        VITE_SITE_LOGO: ${VITE_SITE_LOGO:-}
+        VITE_ACCENT: ${VITE_ACCENT:-#EF5B25}
+    env_file: .env
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      GIN_MODE: release
+    ports:
+      - "${APP_PORT:-8090}:8080"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  mongo-data:
+  go-mod-cache:
+  frontend-node-modules:
