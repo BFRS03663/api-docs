@@ -47,8 +47,10 @@ The "Test Request" button in the reference sends requests through `ANY /api/v1/p
 Every collection is also available as text so language models, crawlers and scripts can read it:
 
 ```
-GET /llms.txt                          index of all collections (llmstxt.org convention)
-GET /llms-full.txt                     every collection, concatenated
+GET /llms.txt                          index (llmstxt.org convention): per collection its base URLs, auth scheme,
+                                       intro, guide chapters and every endpoint grouped by section, each linked
+                                       to its own Markdown page
+GET /llms-full.txt                     the index followed by every collection's complete documentation
 GET /docs/<slug>.md  |  .txt           one collection as Markdown or plain text
 GET /docs/<slug>/<operationId>.md      one endpoint
 GET /docs/<slug>/openapi.json          the canonical OpenAPI document

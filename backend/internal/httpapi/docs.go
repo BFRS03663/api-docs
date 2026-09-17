@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
 
 	"github.com/shiprocket/apidocs/internal/domain"
@@ -56,32 +57,63 @@ func baseURL(c *gin.Context) string {
 }
 
 func (h *docsHandlers) llmsIndex(c *gin.Context) {
-	cols, err := h.cols.List(c.Request.Context())
+	entries, err := h.indexEntries(c)
 	if err != nil {
 		h.fail(c, err)
 		return
 	}
-	c.Data(http.StatusOK, mimeText, []byte(markdown.Index(h.site, baseURL(c), cols)))
+	c.Header("Cache-Control", "public, max-age=60")
+	c.Data(http.StatusOK, mimeText, []byte(markdown.Index(h.site, baseURL(c), entries)))
 }
 
 func (h *docsHandlers) llmsFull(c *gin.Context) {
-	cols, err := h.cols.List(c.Request.Context())
+	entries, err := h.indexEntries(c)
 	if err != nil {
 		h.fail(c, err)
 		return
 	}
+	base := baseURL(c)
 	var b strings.Builder
-	b.WriteString(markdown.Index(h.site, baseURL(c), cols))
-	for _, col := range cols {
-		md, err := h.render(c, col.Slug, "")
-		if err != nil {
-			h.fail(c, err)
-			return
+	b.WriteString(markdown.Index(h.site, base, entries))
+	for _, e := range entries {
+		if e.Doc == nil {
+			continue
 		}
 		b.WriteString("\n\n---\n\n")
-		b.WriteString(md)
+		b.WriteString(markdown.Collection(e.Collection, e.Doc, base))
 	}
+	c.Header("Cache-Control", "public, max-age=60")
 	c.Data(http.StatusOK, mimeText, []byte(b.String()))
+}
+
+// indexEntries lists every collection with its parsed spec. A collection
+// whose spec cannot be loaded is kept with a nil Doc so the index still
+// links to it instead of failing the whole page.
+func (h *docsHandlers) indexEntries(c *gin.Context) ([]markdown.IndexEntry, error) {
+	ctx := c.Request.Context()
+	cols, err := h.cols.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	entries := make([]markdown.IndexEntry, 0, len(cols))
+	for _, col := range cols {
+		entry := markdown.IndexEntry{Collection: col}
+		if doc, err := h.loadDoc(ctx, col.Slug); err != nil {
+			h.log.Error("llms index: skipping collection spec", "slug", col.Slug, "error", err)
+		} else {
+			entry.Doc = doc
+		}
+		entries = append(entries, entry)
+	}
+	return entries, nil
+}
+
+func (h *docsHandlers) loadDoc(ctx context.Context, slug string) (*openapi3.T, error) {
+	spec, err := h.cols.GetSpec(ctx, slug)
+	if err != nil {
+		return nil, err
+	}
+	return markdown.Load(spec)
 }
 
 // collection handles /docs/<slug>.md, /docs/<slug>.txt, and the bare
@@ -155,11 +187,7 @@ func (h *docsHandlers) render(c *gin.Context, slug, opID string) (string, error)
 	if err != nil {
 		return "", err
 	}
-	spec, err := h.cols.GetSpec(ctx, slug)
-	if err != nil {
-		return "", err
-	}
-	doc, err := markdown.Load(spec)
+	doc, err := h.loadDoc(ctx, slug)
 	if err != nil {
 		return "", err
 	}

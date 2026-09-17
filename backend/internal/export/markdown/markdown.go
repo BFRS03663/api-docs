@@ -64,24 +64,6 @@ func Operation(col domain.Collection, doc *openapi3.T, operationID string, baseU
 	return "", false
 }
 
-// Index renders llms.txt: a short orientation plus one link per collection.
-func Index(siteName, baseURL string, cols []domain.Collection) string {
-	var b strings.Builder
-	fmt.Fprintf(&b, "# %s\n\n", siteName)
-	fmt.Fprintf(&b, "> API reference for %d collection(s). Every link below is a Markdown rendering of the complete documentation for that API; append /openapi.json to a collection path for the machine-readable OpenAPI document.\n\n", len(cols))
-	b.WriteString("## Collections\n\n")
-	for _, c := range cols {
-		line := firstLine(c.Description)
-		if line != "" {
-			line = ": " + line
-		}
-		fmt.Fprintf(&b, "- [%s](%s/docs/%s.md)%s (%d endpoints)\n", c.Name, baseURL, c.Slug, line, c.OperationCount)
-	}
-	b.WriteString("\n## Optional\n\n")
-	fmt.Fprintf(&b, "- [Everything in one file](%s/llms-full.txt): all collections concatenated\n", baseURL)
-	return b.String()
-}
-
 type tagGroup struct {
 	display     string
 	description string

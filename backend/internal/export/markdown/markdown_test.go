@@ -119,10 +119,42 @@ func TestOperationAndIndex(t *testing.T) {
 		t.Errorf("named examples not rendered:\n%s", md)
 	}
 
-	idx := Index("Acme Docs", "https://docs.example.com", []domain.Collection{col, {Slug: "other", Name: "Other", OperationCount: 2}})
-	for _, want := range []string{"# Acme Docs", "- [Acme Users API](https://docs.example.com/docs/sample.postman_collection.md): Sample collection", "(6 endpoints)", "llms-full.txt"} {
+	col.Servers = []string{"https://api.example.com/v1"}
+	entries := []IndexEntry{{Collection: col, Doc: doc}, {Collection: domain.Collection{Slug: "other", Name: "Other", OperationCount: 2}}}
+	idx := Index("Acme Docs", "https://docs.example.com", entries)
+	for _, want := range []string{
+		"# Acme Docs",
+		"## How to read this file",
+		"- [Acme Users API](https://docs.example.com/docs/sample.postman_collection.md): Sample collection",
+		"(6 endpoints)",
+		"## Acme Users API\n\nSample collection used by the importer tests.",
+		"- Base URL: https://api.example.com/v1\n",
+		"- Authentication: HTTP bearer token in the Authorization header (",
+		"[OpenAPI document](https://docs.example.com/docs/sample.postman_collection/openapi.json)",
+		"### Users / Admin",
+		"- [GET /users/{id}](https://docs.example.com/docs/sample.postman_collection/get-user.md): Get user",
+		"## Other\n\n- Endpoints: 2\n- [Full documentation](https://docs.example.com/docs/other.md)",
+		"llms-full.txt",
+	} {
 		if !strings.Contains(idx, want) {
 			t.Errorf("index missing %q:\n%s", want, idx)
 		}
+	}
+}
+
+func TestGuideHeadingsAndFirstParagraph(t *testing.T) {
+	desc := "Intro line one.\nIntro line two.\n\n# Getting Started\n\nSteps.\n\n## **Errors:**\n\n### Not a chapter\n\n# Getting Started\n"
+	if got := firstParagraph(desc); got != "Intro line one. Intro line two." {
+		t.Errorf("firstParagraph = %q", got)
+	}
+	if got := strings.Join(guideHeadings(desc), "|"); got != "Getting Started|Errors" {
+		t.Errorf("guideHeadings = %q", got)
+	}
+	if got := firstParagraph("# Only a heading\n\n> quoted intro"); got != "quoted intro" {
+		t.Errorf("firstParagraph skipping heading = %q", got)
+	}
+	long := strings.Repeat("x", maxIntroChars+50)
+	if got := firstParagraph(long); len(got) != maxIntroChars || !strings.HasSuffix(got, "...") {
+		t.Errorf("firstParagraph cap: len=%d", len(got))
 	}
 }
