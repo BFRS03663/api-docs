@@ -51,12 +51,15 @@ export function parseDraft(text: string): Draft {
     default:
       return { ok: false, message: 'Add "openapi: 3.0.3" (or swagger: "2.0") at the top level so the document is recognised as an API description' };
   }
+  const pathCount = typeof spec.paths === "object" && spec.paths ? Object.keys(spec.paths).length : 0;
+  // Mirrors the importer, which refuses documents without endpoints.
+  if (pathCount === 0) return { ok: false, message: "Add at least one endpoint under paths; a document without endpoints cannot be published" };
   return {
     ok: true,
     format: typeof spec.openapi === "string" ? "openapi3" : "openapi2",
     title: asString(info.title),
     version: asString(info.version),
-    pathCount: typeof spec.paths === "object" && spec.paths ? Object.keys(spec.paths).length : 0,
+    pathCount,
   };
 }
 
@@ -76,8 +79,50 @@ export function specToYaml(json: string): string {
   return stringify(JSON.parse(json) as unknown, { lineWidth: 0, aliasDuplicateObjects: false });
 }
 
-/** A small but complete OpenAPI 3 document to start a new collection from. */
-export const starterTemplate = `openapi: 3.0.3
+/**
+ * What a new document starts as: the top-level sections filled in with
+ * placeholders and comments, and no endpoints yet.
+ */
+export const skeletonTemplate = `openapi: 3.0.3
+info:
+  title: My API
+  version: 1.0.0
+  description: |
+    What this API does, who it is for and how to get access.
+    Markdown is supported.
+  contact:
+    name: API Support
+    email: support@example.com
+servers:
+  - url: https://api.example.com/v1
+    description: Production
+  - url: https://sandbox.example.com/v1
+    description: Sandbox
+tags:
+  - name: Example
+    description: Endpoints are grouped in the sidebar by tag.
+security:
+  - bearerAuth: []
+paths:
+  # One entry per URL path. Replace this placeholder with your endpoints.
+  /health:
+    get:
+      tags: [Example]
+      summary: Health check
+      operationId: getHealth
+      responses:
+        "200":
+          description: The service is up
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas: {}
+`;
+
+/** A small but complete OpenAPI 3 document with two documented endpoints. */
+export const exampleTemplate = `openapi: 3.0.3
 info:
   title: My API
   version: 1.0.0

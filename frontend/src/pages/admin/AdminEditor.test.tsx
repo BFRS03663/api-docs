@@ -78,6 +78,24 @@ beforeEach(() => {
   setSession("t0k", new Date(Date.now() + 3600_000).toISOString());
 });
 
+test("a new document starts as a skeleton with the top-level sections filled in", async () => {
+  mockFetch({});
+  renderAt("/admin/editor");
+
+  const editor = (await screen.findByLabelText("YAML")) as HTMLTextAreaElement;
+  for (const key of ["openapi: 3.0.3", "title: My API", "version: 1.0.0", "servers:", "tags:", "security:", "paths:", "securitySchemes:"]) {
+    expect(editor.value).toContain(key);
+  }
+  expect(await screen.findByTestId("scalar")).toHaveTextContent("title: My API");
+  expect(screen.getByLabelText("Slug")).toHaveValue("my-api");
+  expect(editor.value).toContain("/health:");
+  expect(screen.getByText(/OpenAPI 3 · 1 path/)).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("button", { name: "Load a full example" }));
+  expect(editor.value).toContain("/orders:");
+  expect(screen.queryByRole("button", { name: "Load a full example" })).not.toBeInTheDocument();
+});
+
 test("renders a live preview from typed YAML and publishes it as a new collection", async () => {
   const calls = mockFetch({
     "POST /api/v1/admin/collections": { status: 201, body: { created: true, collection: { ...petstore, slug: "mini", name: "Mini" } } },
@@ -85,7 +103,7 @@ test("renders a live preview from typed YAML and publishes it as a new collectio
   renderAt("/admin/editor");
 
   fireEvent.change(await screen.findByLabelText("YAML"), { target: { value: MINI } });
-  expect(await screen.findByTestId("scalar")).toHaveTextContent("title: Mini");
+  await waitFor(() => expect(screen.getByTestId("scalar")).toHaveTextContent("title: Mini"));
   expect(screen.getByLabelText("Slug")).toHaveValue("mini");
   expect(screen.getByText(/OpenAPI 3 · 1 path/)).toBeInTheDocument();
 
@@ -109,7 +127,7 @@ test("keeps the last good preview and blocks publishing while the YAML is invali
   const editor = await screen.findByLabelText("YAML");
 
   fireEvent.change(editor, { target: { value: MINI } });
-  expect(await screen.findByTestId("scalar")).toHaveTextContent("title: Mini");
+  await waitFor(() => expect(screen.getByTestId("scalar")).toHaveTextContent("title: Mini"));
 
   fireEvent.change(editor, { target: { value: "openapi: 3.0.3\ninfo: title: x\n" } });
   expect(await screen.findByRole("alert")).toHaveTextContent(/line 2/i);
@@ -141,7 +159,7 @@ test("opens a Postman-sourced collection as its converted OpenAPI YAML", async (
   mockFetch({
     "/api/v1/admin/collections/legacy/source": {
       status: 200,
-      body: { slug: "legacy", filename: "legacy.postman_collection.json", type: "postman", canonical: true, content: '{"openapi":"3.0.0","info":{"title":"Legacy","version":"1"},"paths":{}}' },
+      body: { slug: "legacy", filename: "legacy.postman_collection.json", type: "postman", canonical: true, content: '{"openapi":"3.0.0","info":{"title":"Legacy","version":"1"},"paths":{"/x":{}}}' },
     },
   });
   renderAt("/admin/editor/legacy");

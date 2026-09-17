@@ -6,7 +6,7 @@ import { useCollectionSource, useImportCollection } from "@/api/admin";
 import { useCollection } from "@/api/client";
 import YamlEditor from "@/components/YamlEditor";
 import { formatLabel, slugify, slugPattern } from "@/lib/detect";
-import { parseDraft, specToYaml, starterTemplate } from "@/lib/draft";
+import { exampleTemplate, parseDraft, skeletonTemplate, specToYaml } from "@/lib/draft";
 import { scalarPreviewConfig } from "@/lib/scalar";
 import { site } from "@/lib/site";
 
@@ -33,7 +33,8 @@ export default function AdminEditor() {
   const importer = useImportCollection();
   const collection = useCollection(routeSlug);
 
-  const [text, setText] = useState("");
+  // A new document starts as the skeleton; a stored one is loaded below.
+  const [text, setText] = useState(routeSlug ? "" : skeletonTemplate);
   const [loadedSlug, setLoadedSlug] = useState<string | null>(null);
   const [publishedText, setPublishedText] = useState<string | null>(null);
   const [slug, setSlug] = useState(routeSlug ?? "");
@@ -66,7 +67,9 @@ export default function AdminEditor() {
   }, [draft, slugTouched]);
   const configuration = useMemo(() => (preview ? scalarPreviewConfig(preview) : null), [preview]);
 
-  const dirty = publishedText === null ? text.trim() !== "" : text !== publishedText;
+  const baseline = publishedText ?? (routeSlug ? "" : skeletonTemplate);
+  const dirty = text !== baseline;
+  const untouched = !routeSlug && (text === skeletonTemplate || text.trim() === "");
   useEffect(() => {
     if (!dirty) return;
     const warn = (e: BeforeUnloadEvent) => e.preventDefault();
@@ -133,9 +136,9 @@ export default function AdminEditor() {
           </span>
         )}
         <div className="ml-auto flex items-center gap-2">
-          {!text && !routeSlug && (
-            <button type="button" onClick={() => onChange(starterTemplate)} className="rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700">
-              Start from a template
+          {untouched && (
+            <button type="button" onClick={() => onChange(exampleTemplate)} className="rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700">
+              Load a full example
             </button>
           )}
           <button type="submit" disabled={!canPublish} className="rounded-md px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50" style={{ background: site.accent }}>
