@@ -1,0 +1,49 @@
+#!/bin/sh
+# >>> appsecd >>>
+# Managed by the AppsecD VS Code/Cursor extension. Do not edit by hand;
+# changes between the markers are overwritten on next install. The real
+# logic lives in the sibling appsecd_scan.py (also managed).
+
+_appsecd_kind="pre-push"
+_appsecd_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+_appsecd_helper="$_appsecd_dir/appsecd_scan.py"
+[ -f "$_appsecd_helper" ] || { echo "[appsecd] helper missing ($_appsecd_helper) - run \"AppsecD: Install Git hooks\" once. Commit allowed." >&2; exit 0; }
+# Find a working Python 3 across macOS / Linux / Windows (Git Bash).
+# Validate each candidate with "import sys" so the Windows Store python
+# stub (a no-op that just opens the Store) is rejected. "py -3" is the
+# Windows Python Launcher. Candidates are literals so word-splitting
+# (needed for "py -3") is safe.
+_appsecd_py=""
+for _cand in python3 /usr/bin/python3 python "py -3" py; do
+  if $_cand -c "import sys" >/dev/null 2>&1; then _appsecd_py="$_cand"; break; fi
+done
+[ -n "$_appsecd_py" ] || { echo "[appsecd] no working python3 found - skipping scan (install python3: macOS Xcode CLT, Linux package, or python.org on Windows). Commit allowed." >&2; exit 0; }
+# Run the scan helper (unquoted so "py -3" splits into two args).
+# Its exit code IS the gate (0 = allow, 1 = block).
+APPSECD_HOOK_KIND="$_appsecd_kind" $_appsecd_py "$_appsecd_helper" "$_appsecd_kind"
+exit $?
+# <<< appsecd <<<
+
+# --- BEGIN BEADS INTEGRATION v1.0.3 ---
+# This section is managed by beads. Do not remove these markers.
+if command -v bd >/dev/null 2>&1; then
+  export BD_GIT_HOOK=1
+  _bd_timeout=${BEADS_HOOK_TIMEOUT:-300}
+  if command -v timeout >/dev/null 2>&1; then
+    timeout "$_bd_timeout" bd hooks run pre-push "$@"
+    _bd_exit=$?
+    if [ $_bd_exit -eq 124 ]; then
+      echo >&2 "beads: hook 'pre-push' timed out after ${_bd_timeout}s — continuing without beads"
+      _bd_exit=0
+    fi
+  else
+    bd hooks run pre-push "$@"
+    _bd_exit=$?
+  fi
+  if [ $_bd_exit -eq 3 ]; then
+    echo >&2 "beads: database not initialized — skipping hook 'pre-push'"
+    _bd_exit=0
+  fi
+  if [ $_bd_exit -ne 0 ]; then exit $_bd_exit; fi
+fi
+# --- END BEADS INTEGRATION v1.0.3 ---

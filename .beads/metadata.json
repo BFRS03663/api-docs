@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "apidocs",
+  "project_id": "8f92b6c9-406b-4703-b7db-ff27f11d196d"
+}

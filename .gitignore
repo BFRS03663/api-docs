@@ -1,0 +1,30 @@
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# ADLC session state (per-developer)
+.adlc/session/
+
+# Go
+backend/tmp/
+backend/bin/
+backend/coverage.out
+backend/internal/httpapi/dist/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+npm-debug.log*
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
