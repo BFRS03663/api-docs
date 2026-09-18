@@ -1,0 +1,227 @@
+# Shiprocket API
+
+> REST API for the Shiprocket shipping platform (India): create and manage orders, assign couriers and AWBs, schedule pickups, print labels/manifests/invoices, track shipments, handle returns, exchanges and NDR, manage products, inventory, channels and pickup addresses, and read wallet, statement and billing discrepancy data. Requests and responses are JSON. Source: https://apidocs.shiprocket.in/
+
+This index links to a Markdown reference generated from the published Postman collection (93 requests, 22 folders). Categories below follow the folder structure of the source. Some folders (Hyperlocal, International) republish endpoints that also appear at the top level; those entries cross-reference the canonical one.
+
+## Authentication
+
+The authentication token is an alphanumeric code, unique to your Shiprocket account, can be used from any system to validate your API calls to access Shiprocket's resources. Shiprocket API uses [JWT](https://jwt.io/introduction/) tokens for validation.
+
+Use this API to validate your API user and obtain the authentication token. Copy this token and use it further to validate your API calls. **The validity of this token is 10 days**.
+
+Your API keys carry many privileges, so be sure to keep them secure! Do not share your secret token in publicly accessible areas such as GitHub, client-side code, and so forth.
+
+**Steps To Use Token:**
+
+1. Copy the token received in response.
+2. Include ***'Authorization: Bearer [yourtokenvalue]'*** in the appropriate field of your code.
+3. That's all! In case of any error, try checking your parameters.
+
+- Token endpoint: `POST https://apiv2.shiprocket.in/v1/external/auth/login` with JSON body `{"email": "", "password": ""}` (API user credentials created under Settings → API in the Shiprocket panel).
+- Send `Authorization: Bearer <token>` on every other request. Token validity is 10 days per the source.
+- Logout endpoint: `POST https://apiv2.shiprocket.in/v1/external/auth/logout`.
+- Full detail: [Authentication & conventions](docs/shiprocket-api/overview.md)
+
+## Conventions
+
+- [Getting started: creating an API user](docs/shiprocket-api/overview.md#getting-started)
+- [Usage guidelines: HTTP methods, example naming, order_id semantics](docs/shiprocket-api/overview.md#document-and-api-usage-guidelines)
+- [Errors and response codes (200/202, 400, 401, 404, 405, 422, 429, 5xx)](docs/shiprocket-api/overview.md#errors-and-response-codes)
+- [Webhooks: tracking-update callback spec and sample payload](docs/shiprocket-api/overview.md#webhooks)
+- [Base URLs](docs/shiprocket-api/overview.md#base-urls)
+- [Coverage notes: what the source does and does not publish](docs/shiprocket-api/overview.md#coverage-notes)
+- Rate limiting: the source only documents HTTP 429 "You have exceeded the API call rate limit"; no numeric limits are published.
+- Pagination: no collection-wide convention is documented; per-endpoint `page` / `per_page` parameters appear in individual parameter tables where supported.
+
+## Endpoints
+
+### Authentication API
+
+- [POST Generate Token](docs/shiprocket-api/overview.md#generate-token): `https://apiv2.shiprocket.in/v1/external/auth/login` — (from folder description) The authentication token is an alphanumeric code, unique to your Shiprocket account, can be used from any system to validate your API calls to access Shiprocket's resources.
+- [POST Token Logout](docs/shiprocket-api/overview.md#token-logout): `https://apiv2.shiprocket.in/v1/external/auth/logout` — No description published in the source collection.
+
+### Create Or Update Order
+
+- [POST Create Custom Order](docs/shiprocket-api/orders.md#create-custom-order): `https://apiv2.shiprocket.in/v1/external/orders/create/adhoc` — Use this API to create a quick custom order.
+- [POST Create Channel Specific Order](docs/shiprocket-api/orders.md#create-channel-specific-order): `https://apiv2.shiprocket.in/v1/external/orders/create` — This API can be used to create a custom order, the same as the Custom order API, except that you have to specify and select a custom channel to create the order.
+- [PATCH Change/Update Pickup Location of Created Orders](docs/shiprocket-api/orders.md#changeupdate-pickup-location-of-created-orders): `https://apiv2.shiprocket.in/v1/external/orders/address/pickup` — Using this API, you can modify the pickup location of an already created order.
+- [POST Update Customer Delivery Address](docs/shiprocket-api/orders.md#update-customer-delivery-address): `https://apiv2.shiprocket.in/v1/external/orders/address/update` — You can update the customer's name and delivery address through this API by passing the Shiprocket order id and the necessary customer details.
+- [POST Update Order](docs/shiprocket-api/orders.md#update-order): `https://apiv2.shiprocket.in/v1/external/orders/update/adhoc` — Use this API to update your orders.
+- [POST Cancel an Order](docs/shiprocket-api/orders.md#cancel-an-order): `https://apiv2.shiprocket.in/v1/external/orders/cancel` — Use this API to cancel a created order.
+- [PATCH Add Inventory for Ordered Product](docs/shiprocket-api/orders.md#add-inventory-for-ordered-product): `https://apiv2.shiprocket.in/v1/external/orders/fulfill` — Use this API to add inventory for ordered products that are out of stock or low on quantity.
+- [PATCH Map Unmapped Products](docs/shiprocket-api/orders.md#map-unmapped-products): `https://apiv2.shiprocket.in/v1/external/orders/mapping` — This API maps your unmapped inventory products.
+- [POST Import Orders in Bulk](docs/shiprocket-api/orders.md#import-orders-in-bulk): `https://apiv2.shiprocket.in/v1/external/orders/import` — Use this API to import orders in bulk to your Shiprocket account from an existing '.csv' file.
+
+### Couriers
+
+- [POST Generate AWB for Shipment](docs/shiprocket-api/shipping.md#generate-awb-for-shipment): `https://apiv2.shiprocket.in/v1/external/courier/assign/awb` — This API can be used to assign the AWB (Air Waybill Number) to your shipment.
+- [GET List of Couriers](docs/shiprocket-api/shipping.md#list-of-couriers): `https://apiv2.shiprocket.in/v1/external/courier/courierListWithCounts` — Use this API to check the list of couriers and the related information with Shiprocket based on the search criteria.Note: This API will work on a company level.
+- [GET Check Courier Serviceability](docs/shiprocket-api/shipping.md#check-courier-serviceability): `https://apiv2.shiprocket.in/v1/external/courier/serviceability/` — Use this API to check the availability of couriers between the pickup and delivery postal codes.Further details like the estimated time of delivery, the rates along with the ids are also shown.
+- [POST Request for Shipment Pickup](docs/shiprocket-api/shipping.md#request-for-shipment-pickup): `https://apiv2.shiprocket.in/v1/external/courier/generate/pickup` — Use this API to create a pickup request for your order shipment.
+- [POST Upload Blocked Pincodes](docs/shiprocket-api/shipping.md#upload-blocked-pincodes): `https://serviceability.shiprocket.in/v1/external/blocked-pincodes/upload` — Adds pincodes to the seller's delivery‑block list, or removes them.
+- [GET Get Blocked Pincodes](docs/shiprocket-api/shipping.md#get-blocked-pincodes): `https://serviceability.shiprocket.in/v1/external/block-pincodes/get` — Reads the seller's delivery‑block list.
+
+### Orders
+
+- [GET Get all Orders](docs/shiprocket-api/orders.md#get-all-orders): `https://apiv2.shiprocket.in/v1/external/orders` — This API call will display a list of all created and available orders in your Shiprocket account.
+- [GET Get Specific Order Details](docs/shiprocket-api/orders.md#get-specific-order-details): `https://apiv2.shiprocket.in/v1/external/orders/show` — Get the order and shipment details of a particular order through this API by passing the Shiprocket order_id in the endpoint URL itself — type in your order_id in place of {id}.
+- [POST Export your orders](docs/shiprocket-api/orders.md#export-your-orders): `https://apiv2.shiprocket.in/v1/external/orders/export` — This API downloads and creates a CSV file of all the orders in your Shiprocket account and sends the download URL to the linked email account of the API user.
+
+### Return & Exchange Orders
+
+- [POST Create a Return Order](docs/shiprocket-api/orders.md#create-a-return-order): `https://apiv2.shiprocket.in/v1/external/orders/create/return` — Use this API to create a new return order in your Shiprocket panel.
+- [POST Create Exchange Order](docs/shiprocket-api/orders.md#create-exchange-order): `https://apiv2.shiprocket.in/v1/external/orders/create/exchange` — Use this API to create a new exchange order in your Shiprocket panel.
+- [POST Update Return Order](docs/shiprocket-api/orders.md#update-return-order): `https://apiv2.shiprocket.in/v1/external/orders/edit` — Use this API to update your return orders.
+- [GET Get All Return Orders](docs/shiprocket-api/orders.md#get-all-return-orders): `https://apiv2.shiprocket.in/v1/external/orders/processing/return` — Using this API, you can get a list of all created return orders in your Shiprocket account, along with their details.
+- [GET Check Courier Serviceability](docs/shiprocket-api/orders.md#check-courier-serviceability): `https://apiv2.shiprocket.in/v1/external/courier/serviceability/` — Use this API to check the availability of couriers between the pickup and delivery postal codes.Further details like the estimated time of delivery, the rates along with the ids are also shown.
+- [POST Generate AWB for Return Shipment](docs/shiprocket-api/orders.md#generate-awb-for-return-shipment): `https://apiv2.shiprocket.in/v1/external/courier/assign/awb` — This API can be used to assign the AWB (Air Waybill Number) to your shipment.
+
+### Shipments
+
+- [GET Get All Shipment Details](docs/shiprocket-api/shipping.md#get-all-shipment-details): `https://apiv2.shiprocket.in/v1/external/shipments` — Use this API to get the shipment details of all the shipments in your Shiprocket account.
+- [GET Get Details of Specific Shipment](docs/shiprocket-api/shipping.md#get-details-of-specific-shipment): `https://apiv2.shiprocket.in/v1/external/shipments` — Get the details of a specific Shipment by passing the value of shipment_id in the endpoint URL.
+- [POST Cancel a Shipment](docs/shiprocket-api/shipping.md#cancel-a-shipment): `https://apiv2.shiprocket.in/v1/external/orders/cancel/shipment/awbs` — Use this API to cancel a created shipment before the "Out for Pickup" state.
+
+### Labels | Manifests | Invoice
+
+- [POST Generate Manifest](docs/shiprocket-api/shipping.md#generate-manifest): `https://apiv2.shiprocket.in/v1/external/manifests/generate` — Using this API, you can generate the manifest for your order.
+- [POST Print Manifest](docs/shiprocket-api/shipping.md#print-manifest): `https://apiv2.shiprocket.in/v1/external/manifests/print` — Use this API to print the generated manifest of orders at an individual level.
+- [POST Generate Label](docs/shiprocket-api/shipping.md#generate-label): `https://apiv2.shiprocket.in/v1/external/courier/generate/label` — Generate the label of order by passing the shipment id in the form of an array.
+- [POST Generate Invoice](docs/shiprocket-api/shipping.md#generate-invoice): `https://apiv2.shiprocket.in/v1/external/orders/print/invoice` — Use this API to generate the invoice for your order by passing the respective Shiprocket order ids.
+- [POST Generate Label + Invoice (Combined)](docs/shiprocket-api/shipping.md#generate-label--invoice-combined): `https://apiv2.shiprocket.in/v1/external/courier/generate/label-invoice` — Generates a single combined PDF containing the shipping label followed by the invoice for each shipment.
+
+### Wrapper API
+
+- [POST Forward](docs/shiprocket-api/orders.md#forward): `https://apiv2.shiprocket.in/v1/external/shipments/create/forward-shipment` — Use this API to do multiple tasks in one go, namely creating a quick order, requesting its shipment, and finally generating the label and the manifest for the same order.
+- [POST Return](docs/shiprocket-api/orders.md#return): `https://apiv2.shiprocket.in/v1/external/shipments/create/return-shipment` — Use this API to perform multiple tasks like Create, AWB generation & scheduling reverse pickups for your Returns.The specifications are the same as the custom return order API, with a few exceptions.
+
+### NDR
+
+- [GET Get All NDR Shipments](docs/shiprocket-api/shipping.md#get-all-ndr-shipments): `https://apiv2.shiprocket.in/v1/external/ndr/all` — This API call will display a list of all the shipments that are in NDR in your Shiprocket account.
+- [GET Get Specific NDR Shipment Details](docs/shiprocket-api/shipping.md#get-specific-ndr-shipment-details): `https://apiv2.shiprocket.in/v1/external/ndr/{AWB}` — Get the shipment details of a particular order through this API by passing the AWB number in the endpoint URL itself.
+- [POST Action NDR](docs/shiprocket-api/shipping.md#action-ndr): `https://apiv2.shiprocket.in/v1/external/ndr/{awb}/action` — This API will let you take actions like Reattempt and RTO on the shipments that are in NDR.
+
+### Tracking
+
+- [GET Get Tracking through AWB](docs/shiprocket-api/shipping.md#get-tracking-through-awb): `https://apiv2.shiprocket.in/v1/external/courier/track/awb/{awb_code}` — Get the tracking details of your shipment by entering the AWB code of the same in the endpoint URL itself.
+- [POST Get Tracking Data for Multiple AWBS](docs/shiprocket-api/shipping.md#get-tracking-data-for-multiple-awbs): `https://apiv2.shiprocket.in/v1/external/courier/track/awbs` — Get the tracking details of multiple shipments by entering their AWB codes together as an array.
+- [GET Get Tracking through Shipment ID](docs/shiprocket-api/shipping.md#get-tracking-through-shipment-id): `https://apiv2.shiprocket.in/v1/external/courier/track/shipment/{shipment_id}` — Get the tracking details of your shipment by entering the shipment_id of the same in the endpoint URL.
+- [GET Get Tracking Data through Order ID](docs/shiprocket-api/shipping.md#get-tracking-data-through-order-id): `https://apiv2.shiprocket.in/v1/external/courier/track?order_id=123&channel_id=12345` — Get the tracking details of your shipment by entering the Order ID of the same in the endpoint URL itself.
+
+### Pickup Addresses
+
+- [GET Get All Pickup Locations](docs/shiprocket-api/shipping.md#get-all-pickup-locations): `https://apiv2.shiprocket.in/v1/external/settings/company/pickup` — Get a list of all pickup locations that have been added to your Shiprocket account through this API.
+- [POST Add a New Pickup Location](docs/shiprocket-api/shipping.md#add-a-new-pickup-location): `https://apiv2.shiprocket.in/v1/external/settings/company/addpickup` — This API can be used to add a new pickup location to your account.Pass the minimum required parameters to add the location.Further details to the address can be added if required.
+
+### Hyperlocal
+
+#### Hyperlocal / Orders
+
+- [POST Create Custom Order](docs/shiprocket-api/hyperlocal-international.md#create-custom-order): `https://apiv2.shiprocket.in/v1/external/orders/create/adhoc` — Use this API to create a quick custom order.
+- [GET Get all Orders](docs/shiprocket-api/hyperlocal-international.md#get-all-orders): `https://apiv2.shiprocket.in/v1/external/orders` — This API call will display a list of all created and available orders in your Shiprocket account.
+- [GET Get Specific Order Details](docs/shiprocket-api/hyperlocal-international.md#get-specific-order-details): `https://apiv2.shiprocket.in/v1/external/orders/show` — Get the order and shipment details of a particular order through this API by passing the Shiprocket order_id in the endpoint URL itself — type in your order_id in place of {id}.
+- [POST Export your orders](docs/shiprocket-api/hyperlocal-international.md#export-your-orders): `https://apiv2.shiprocket.in/v1/external/orders/export` — This API downloads and creates a CSV file of all the orders in your Shiprocket account and sends the download URL to the linked email account of the API user.
+
+#### Hyperlocal / Couriers
+
+- [POST Generate AWB for Shipment](docs/shiprocket-api/hyperlocal-international.md#generate-awb-for-shipment): `https://apiv2.shiprocket.in/v1/external/courier/assign/awb` — This API can be used to assign the AWB (Air Waybill Number) to your shipment.
+- [GET Check Courier Serviceability](docs/shiprocket-api/hyperlocal-international.md#check-courier-serviceability): `https://apiv2.shiprocket.in/v1/external/courier/serviceability/` — Use this API to check the availability of couriers between the pickup and delivery postal codes.Further details like the estimated time of delivery, the rates along with the ids are also shown.
+
+#### Hyperlocal / Tracking
+
+- [GET Get Tracking through AWB](docs/shiprocket-api/hyperlocal-international.md#get-tracking-through-awb): `https://apiv2.shiprocket.in/v1/external/courier/track/awb/{awb_code}` — Get the tracking details of your shipment by entering the AWB code of the same in the endpoint URL itself.
+- [POST Get Tracking Data for Multiple AWBS](docs/shiprocket-api/hyperlocal-international.md#get-tracking-data-for-multiple-awbs): `https://apiv2.shiprocket.in/v1/external/courier/track/awbs` — Get the tracking details of multiple shipments by entering their AWB codes together as an array.
+- [GET Get Tracking through Shipment ID](docs/shiprocket-api/hyperlocal-international.md#get-tracking-through-shipment-id): `https://apiv2.shiprocket.in/v1/external/courier/track/shipment/{shipment_id}` — Get the tracking details of your shipment by entering the shipment_id of the same in the endpoint URL.
+- [GET Get Tracking Data through Order ID](docs/shiprocket-api/hyperlocal-international.md#get-tracking-data-through-order-id): `https://apiv2.shiprocket.in/v1/external/courier/track?order_id=123&channel_id=12345` — Get the tracking details of your shipment by entering the Order ID of the same in the endpoint URL itself.
+
+#### Hyperlocal / Pickup Addresses
+
+- [GET Get All Pickup Locations](docs/shiprocket-api/hyperlocal-international.md#get-all-pickup-locations): `https://apiv2.shiprocket.in/v1/external/settings/company/pickup` — Get a list of all pickup locations that have been added to your Shiprocket account through this API.
+- [POST Add a New Pickup Location](docs/shiprocket-api/hyperlocal-international.md#add-a-new-pickup-location): `https://apiv2.shiprocket.in/v1/external/settings/company/addpickup` — This API can be used to add a new pickup location to your account.Pass the minimum required parameters to add the location.Further details to the address can be added if required.
+
+
+### International
+
+#### International / Tracking
+
+- [GET Get Tracking through AWB](docs/shiprocket-api/hyperlocal-international.md#get-tracking-through-awb-1): `https://apiv2.shiprocket.in/v1/external/courier/track/awb/{awb_code}` — Get the tracking details of your shipment by entering the AWB code of the same in the endpoint URL itself.
+- [GET Get Tracking through Shipment ID](docs/shiprocket-api/hyperlocal-international.md#get-tracking-through-shipment-id-1): `https://apiv2.shiprocket.in/v1/external/courier/track/shipment/{shipment_id}` — Get the tracking details of your shipment by entering the shipment_id of the same in the endpoint URL.
+- [GET Get Tracking Data through Order iD](docs/shiprocket-api/hyperlocal-international.md#get-tracking-data-through-order-id-1): `https://apiv2.shiprocket.in/v1/external/courier/track?order_id=123&channel_id=12345` — Get the tracking details of your shipment by entering the Order ID of the same in the endpoint URL itself.
+- [GET Tracking](docs/shiprocket-api/hyperlocal-international.md#tracking): `https://apiv2.shiprocket.in/v1/external/international/orders/track` — Get the tracking details of your shipments.
+
+- [POST International KYC](docs/shiprocket-api/hyperlocal-international.md#international-kyc): `https://apiv2.shiprocket.in/v1/external/international/settings/international_kyc` — Use this API for your international KYC.
+- [POST Add Bank Details](docs/shiprocket-api/hyperlocal-international.md#add-bank-details): `https://apiv2.shiprocket.in/v1/external/international/settings/add-bank-details` — ThisdocumentationprovidesinformationabouttheBankDetailsAPI,whichallowsyoutoaddbankdetailsforinternationalsettings.TheAPIendpoint, parameters, request sampledata, success response , and failed response are outlined below.
+- [POST Create order](docs/shiprocket-api/hyperlocal-international.md#create-order): `https://apiv2.shiprocket.in/v1/external/international/orders/create/adhoc` — Use this API to create a quick custom order.
+- [POST Update order](docs/shiprocket-api/hyperlocal-international.md#update-order): `https://apiv2.shiprocket.in/v1/external/international/orders/update/adhoc` — Use this API to update your orders.
+- [POST International Wrapper API](docs/shiprocket-api/hyperlocal-international.md#international-wrapper-api): `https://apiv2.shiprocket.in/v1/external/international/shipments/create/forward-shipment` — Use this API to do multiple tasks in one go, namely creating a quick order, requesting its shipment, pickup generation generating the label and the manifest for the same order.
+- [GET Serviceability](docs/shiprocket-api/hyperlocal-international.md#serviceability): `https://apiv2.shiprocket.in/v1/external/international/courier/serviceability?order_id=247825513` — This API checks courier serviceability for international orders and displays them as a list.
+- [POST AWB Assignment](docs/shiprocket-api/hyperlocal-international.md#awb-assignment): `https://apiv2.shiprocket.in/v1/external/international/courier/assign/awb` — This API can be used to assign the AWB (Air Waybill Number) to your shipment.
+- [POST Manifest Generation](docs/shiprocket-api/hyperlocal-international.md#manifest-generation): `https://apiv2.shiprocket.in/v1/external/international/manifests/generate` — Use this API to create a pickup request for your order shipment.
+- [POST Generate Pickup](docs/shiprocket-api/hyperlocal-international.md#generate-pickup): `https://apiv2.shiprocket.in/v1/external/courier/generate/pickup` — Use this API to create a pickup request for your order shipment.
+
+### Account
+
+- [GET Get Wallet Balance](docs/shiprocket-api/account-billing.md#get-wallet-balance): `https://apiv2.shiprocket.in/v1/external/account/details/wallet-balance` — Use this API to get the Wallet balance details of your Shiprocket account.
+
+### Products
+
+- [GET Get All Products](docs/shiprocket-api/catalog.md#get-all-products): `https://apiv2.shiprocket.in/v1/external/products` — This API can be used to display a detailed list of all the products that you have in your Shiprocket account.
+- [GET Get Specific Product Details](docs/shiprocket-api/catalog.md#get-specific-product-details): `https://apiv2.shiprocket.in/v1/external/products/show/{product_id}` — Use this API to get the details of a specific product.
+- [POST Add New Products](docs/shiprocket-api/catalog.md#add-new-products): `https://apiv2.shiprocket.in/v1/external/products` — Use this API to add a new product to your Shiprocket account.Provide the required product details and any additional info to successfully add a new product to your product list.
+- [POST Convert to QC Product](docs/shiprocket-api/catalog.md#convert-to-qc-product): `https://apiv2.shiprocket.in/v1/external/products/qc-product-update/{productID}` — Use this API to convert an existing product to a QC product.
+- [POST Bulk Import Products](docs/shiprocket-api/catalog.md#bulk-import-products): `https://apiv2.shiprocket.in/v1/external/products/import` — Use this API to import your products in bulk from a .csv file.No parameters are required.
+- [GET Get Sample .csv Format](docs/shiprocket-api/catalog.md#get-sample-csv-format): `https://apiv2.shiprocket.in/v1/external/products/sample` — This API will provide a sample format for a CSV file that can be used for importing orders.
+
+### Listings
+
+- [GET Get All Listings](docs/shiprocket-api/catalog.md#get-all-listings): `https://apiv2.shiprocket.in/v1/external/listings` — This API can be used to get a JSON representation of all the product listings in your Shiprocket account, i.e., all the products associated with a specific channel.
+- [POST Map Channel Product](docs/shiprocket-api/catalog.md#map-channel-product): `https://apiv2.shiprocket.in/v1/external/listings/link` — Use this API to map a product present in the channel catalogue to a product present in the master catalogue.
+- [POST Import Catalog Mappings](docs/shiprocket-api/catalog.md#import-catalog-mappings): `https://apiv2.shiprocket.in/v1/external/listings/import` — Use this API to import a CSV file containing channel catalogue to the master catalogue mappings.
+- [GET Export Mapped Products](docs/shiprocket-api/catalog.md#export-mapped-products): `https://apiv2.shiprocket.in/v1/external/listings/export/mapped` — This API downloads the list of mapped items in your channel catalogue sheet.
+- [GET Export Unmapped Products](docs/shiprocket-api/catalog.md#export-unmapped-products): `https://apiv2.shiprocket.in/v1/external/listings/export/unmapped` — Get a list of all the unmapped products in your channel catalogue using this API.
+- [GET Export Catalog Sample](docs/shiprocket-api/catalog.md#export-catalog-sample): `https://apiv2.shiprocket.in/v1/external/listings/sample` — This API displays the download link of a sample catalogue sheet for reference purposes.
+
+### Channels
+
+- [GET Get Integrated Channel Details](docs/shiprocket-api/catalog.md#get-integrated-channel-details): `https://apiv2.shiprocket.in/v1/external/channels` — This API shows a list of all the channels that have already been integrated with your Shiprocket account.
+- [POST Create Custom Channel](docs/shiprocket-api/catalog.md#create-custom-channel): `https://apiv2.shiprocket.in/v1/external/channels` — Creates a new manual (custom) channel in the seller's Shiprocket account.
+
+### Inventory
+
+- [GET Get Inventory Details](docs/shiprocket-api/catalog.md#get-inventory-details): `https://apiv2.shiprocket.in/v1/external/inventory` — This API can be used to check the inventory details of a product sku.
+- [PUT Update Your Inventory](docs/shiprocket-api/catalog.md#update-your-inventory): `https://apiv2.shiprocket.in/v1/external/inventory/{product_id}/update` — This API is used to update your product inventory details.
+
+### Countries
+
+- [GET Get Country Codes](docs/shiprocket-api/catalog.md#get-country-codes): `https://apiv2.shiprocket.in/v1/external/countries` — This API lists all the countries present in the Shiprocket database and the respective country ids, ISO 2 and ISO 3 codes.
+- [GET Get All Zones](docs/shiprocket-api/catalog.md#get-all-zones): `https://apiv2.shiprocket.in/v1/external/countries/show/{country_id}` — Use this API to get a further list of all the available zones within a country, along with their ids and details.
+- [GET Get Locality Details](docs/shiprocket-api/catalog.md#get-locality-details): `https://apiv2.shiprocket.in/v1/external/open/postcode/details` — Use this API to get further locality details of any given postcode.
+
+### Statement Details
+
+- [GET Get Statement Details](docs/shiprocket-api/account-billing.md#get-statement-details): `https://apiv2.shiprocket.in/v1/external/account/details/statement` — Use this API to get the account statement details of your Shiprocket account.
+
+### Discrepancy Details
+
+- [GET Get Dicrepancy Data](docs/shiprocket-api/account-billing.md#get-dicrepancy-data): `https://apiv2.shiprocket.in/v1/external/billing/discrepancy` — Get the discrepancy data associated with your account, if any.
+
+### File Imports
+
+- [GET Get File import Results](docs/shiprocket-api/orders.md#get-file-import-results): `https://apiv2.shiprocket.in/v1/external/errors/{import_id}/check` — Check the import response of various file imports for any error, including bulk order imports, products and product listings.
+
+## Reference files
+
+- [Overview, Authentication & Conventions](docs/shiprocket-api/overview.md): Authentication API
+- [Orders, Returns & Exchanges](docs/shiprocket-api/orders.md): Create Or Update Order, Orders, Return & Exchange Orders, Wrapper API, File Imports
+- [Couriers, Shipments, Tracking & NDR](docs/shiprocket-api/shipping.md): Couriers, Shipments, Labels | Manifests | Invoice, Pickup Addresses, NDR, Tracking
+- [Products, Listings, Channels & Inventory](docs/shiprocket-api/catalog.md): Products, Listings, Channels, Inventory, Countries
+- [Account, Wallet & Billing](docs/shiprocket-api/account-billing.md): Account, Statement Details, Discrepancy Details
+- [Hyperlocal & International](docs/shiprocket-api/hyperlocal-international.md): Hyperlocal, International
+
+## Optional
+
+- [Original documentation site](https://apidocs.shiprocket.in/): Postman-published documentation this reference was generated from.
+- [Raw collection JSON](https://apidocs.shiprocket.in/api/collections/8407119/SzYW1zB2?versionTag=latest): machine-readable source of every endpoint here.
+- [Sense (RTO score / address intelligence products)](docs/shiprocket-api/overview.md#sense): marketing overview only; no endpoints are published in the collection.
+- [Shiprocket MCP server](docs/shiprocket-api/overview.md#shiprocket-mcp-server): setup notes for the community MCP server.
