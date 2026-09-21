@@ -60,6 +60,15 @@ GET /api/v1/search?q=<words>[&collection=<slug>][&limit=25]   full-text search o
 
 The docs page has an "Export for LLMs" menu with the same links plus "Copy as Markdown". `SITE_NAME` in `.env` sets the title used in `llms.txt`.
 
+The hand-written Shiprocket reference committed at the repo root (`llms.txt` and `docs/shiprocket-api/*.md`) is served separately, so it does not collide with the generated index:
+
+```
+GET /reference/llms.txt                         index of the committed reference
+GET /reference/docs/shiprocket-api/<file>.md    the six grouped reference files it links to
+```
+
+The Vite dev server streams these from the repo; `npm run build` copies them into `dist/reference/` so the production binary serves them as static files (`REPO_DOCS_DIR` overrides the source directory, as the Dockerfile does).
+
 ## Admin
 
 Open `/admin` and sign in with `ADMIN_USERNAME` and the password behind `ADMIN_PASSWORD_HASH`. From there you can import a collection by uploading an OpenAPI or Postman file or by pasting a URL (Postman published-docs pages are detected automatically), re-import an existing one, or delete it. The **Write spec** tab is a Swagger-Editor-style page: the OpenAPI document (YAML or JSON) on the left, the rendered reference on the right, re-rendered as you type. A new document starts as a skeleton with the info, servers, tags and security sections filled in; **Publish** creates the collection or replaces an existing one. **Edit** on the collections table opens a stored document in the same editor (Postman imports open as their converted OpenAPI document). Sessions are JWTs signed with `JWT_SECRET` and last 12 hours; login is limited to 5 attempts per minute per IP.

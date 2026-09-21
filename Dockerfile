@@ -6,6 +6,10 @@ WORKDIR /ui
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY frontend/ ./
+# Hand-written reference served under /reference (see frontend/vite-plugin-repo-docs.ts).
+COPY llms.txt /repo/llms.txt
+COPY docs/shiprocket-api/ /repo/docs/shiprocket-api/
+ENV REPO_DOCS_DIR=/repo
 # Branding is baked in at build time (Vite env); pass with --build-arg.
 ARG VITE_SITE_NAME="API Docs"
 ARG VITE_SITE_LOGO=""

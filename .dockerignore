@@ -12,3 +12,4 @@ backend/internal/ui/dist/*
 !backend/internal/ui/dist/.gitkeep
 **/*.md
 !README.md
+!docs/shiprocket-api/*.md
