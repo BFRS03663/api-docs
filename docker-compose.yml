@@ -36,11 +36,15 @@ services:
       VITE_SITE_NAME: ${VITE_SITE_NAME:-API Docs}
       VITE_SITE_LOGO: ${VITE_SITE_LOGO:-}
       VITE_ACCENT: ${VITE_ACCENT:-#EF5B25}
+      # Hand-written reference served at /reference (frontend/vite-plugin-repo-docs.ts).
+      REPO_DOCS_DIR: /repo
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     volumes:
       - ./frontend:/app
       - frontend-node-modules:/app/node_modules
+      - ./llms.txt:/repo/llms.txt:ro
+      - ./docs/shiprocket-api:/repo/docs/shiprocket-api:ro
     depends_on:
       - backend
 

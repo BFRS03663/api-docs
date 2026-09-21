@@ -63,6 +63,13 @@ export default function repoDocs(frontendDir: string): Plugin {
       isBuild = config.command === "build" && config.mode !== "test";
     },
     configureServer(server) {
+      for (const entry of exposedEntries) {
+        if (!existsSync(path.join(root, entry))) {
+          server.config.logger.warn(
+            `repo-docs: ${path.join(root, entry)} not found; ${mountPrefix}/${entry} will 404 (set REPO_DOCS_DIR)`,
+          );
+        }
+      }
       server.middlewares.use((req, res, next) => {
         const file = resolveExposed(root, req.url ?? "");
         if (!file) return next();

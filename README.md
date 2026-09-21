@@ -67,7 +67,7 @@ GET /reference/llms.txt                         index of the committed reference
 GET /reference/docs/shiprocket-api/<file>.md    the six grouped reference files it links to
 ```
 
-The Vite dev server streams these from the repo; `npm run build` copies them into `dist/reference/` so the production binary serves them as static files (`REPO_DOCS_DIR` overrides the source directory, as the Dockerfile does).
+The Vite dev server streams these from the repo; `npm run build` copies them into `dist/reference/` so the production binary serves them as static files. `REPO_DOCS_DIR` overrides the source directory: the Dockerfile and the `frontend` service in docker-compose both mount the two sources at `/repo` and set it, since those containers only see `frontend/`.
 
 ## Admin
 
