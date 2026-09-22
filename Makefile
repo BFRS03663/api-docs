@@ -1,7 +1,10 @@
-.PHONY: seed seed-url docker-prod help docker-up docker-down docker-logs dev-backend dev-frontend test test-backend test-frontend lint lint-backend lint-frontend build hash-password
+.PHONY: seed seed-url docker-prod help docker-up docker-down docker-logs dev-backend dev-frontend test test-backend test-frontend lint lint-backend lint-frontend build hash-password llms-full
 
 help: ## Show targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
+
+llms-full: ## Rebuild llms-full.txt from llms.txt and docs/shiprocket-api/*.md
+	node scripts/build-llms-full.mjs
 
 docker-up: ## Start mongo + backend (air) + frontend (vite)
 	docker compose up --build -d

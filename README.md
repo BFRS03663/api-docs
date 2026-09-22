@@ -60,14 +60,17 @@ GET /api/v1/search?q=<words>[&collection=<slug>][&limit=25]   full-text search o
 
 The docs page has an "Export for LLMs" menu with the same links plus "Copy as Markdown". `SITE_NAME` in `.env` sets the title used in `llms.txt`.
 
-The hand-written Shiprocket reference committed at the repo root (`llms.txt` and `docs/shiprocket-api/*.md`) is served separately, so it does not collide with the generated index:
+The hand-written Shiprocket reference committed at the repo root (`llms.txt`, `llms-full.txt` and `docs/shiprocket-api/*.md`) is served separately, so it does not collide with the generated index:
 
 ```
 GET /reference/llms.txt                         index of the committed reference
+GET /reference/llms-full.txt                    the index followed by the complete contents of every reference file
 GET /reference/docs/shiprocket-api/<file>.md    the six grouped reference files it links to
 ```
 
-The Vite dev server streams these from the repo; `npm run build` copies them into `dist/reference/` so the production binary serves them as static files. `REPO_DOCS_DIR` overrides the source directory: the Dockerfile and the `frontend` service in docker-compose both mount the two sources at `/repo` and set it, since those containers only see `frontend/`.
+The Vite dev server streams these from the repo; `npm run build` copies them into `dist/reference/` so the production binary serves them as static files. `REPO_DOCS_DIR` overrides the source directory: the Dockerfile and the `frontend` service in docker-compose both mount the three sources at `/repo` and set it, since those containers only see `frontend/`.
+
+`llms-full.txt` is generated, not hand-edited: after changing `llms.txt` or any file under `docs/shiprocket-api/`, run `make llms-full` (or `node scripts/build-llms-full.mjs`) to rebuild it. The script rewrites cross-file links to in-document anchors and fails if any anchor does not resolve; `node scripts/build-llms-full.mjs --check` reports whether the committed copy is current.
 
 ## Admin
 

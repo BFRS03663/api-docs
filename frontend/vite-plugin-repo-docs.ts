@@ -4,10 +4,11 @@ import type { Plugin } from "vite";
 
 /**
  * Serves the hand-written reference committed at the repository root
- * (`llms.txt` and `docs/shiprocket-api/*.md`) under one URL prefix, so the
- * relative links inside llms.txt keep resolving:
+ * (`llms.txt`, `llms-full.txt` and `docs/shiprocket-api/*.md`) under one URL
+ * prefix, so the relative links inside llms.txt keep resolving:
  *
  *   /reference/llms.txt
+ *   /reference/llms-full.txt
  *   /reference/docs/shiprocket-api/<file>.md
  *
  * Dev: a middleware streams the files straight from the repo. Build: the
@@ -20,7 +21,7 @@ import type { Plugin } from "vite";
 export const mountPrefix = "/reference";
 
 /** Entries (relative to the repo root) that are exposed. Nothing else is. */
-export const exposedEntries = ["llms.txt", "docs/shiprocket-api"];
+export const exposedEntries = ["llms.txt", "llms-full.txt", "docs/shiprocket-api"];
 
 const contentTypes: Record<string, string> = {
   ".md": "text/markdown; charset=utf-8",
